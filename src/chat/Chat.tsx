@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { useGetMe } from '@/apiServices/userApi';
 import { Input } from '@/components/ui/input';
@@ -48,6 +48,17 @@ export default function ChatLayout() {
   const location = useLocation();
   const selectedUser = location.state?.user;
   const currentUserId = user?.data.id;
+  // Reference to the end of the messages list
+  const messagesEndRef = useRef<null | HTMLDivElement>(null); 
+
+  // Function to scroll to the bottom
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  
 
   const {
     sendMessage,
@@ -73,6 +84,11 @@ export default function ChatLayout() {
     sendMessage(content);
     setMessageInput('');
   };
+
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [socketMessages, fetchedMessages]);
 
   const currentChat = selectedUser ? {
     name: selectedUser.username,
@@ -145,7 +161,9 @@ export default function ChatLayout() {
                       {formatMessageTime(msg.created_at)}
                     </p>
                   </div>
+                  <div ref={messagesEndRef} />
                 </div>
+                
               );
             })}
           </div>

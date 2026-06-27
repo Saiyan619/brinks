@@ -1,4 +1,4 @@
-import React, { useRef, useState, type ChangeEvent } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import { Eye, EyeOff, Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -7,7 +7,6 @@ import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { useLogin } from '@/apiServices/authApi';
 import { Spinner } from '@/components/ui/spinner';
 import { useNavigate } from 'react-router-dom';
-import { useGetMe } from '@/apiServices/userApi';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
