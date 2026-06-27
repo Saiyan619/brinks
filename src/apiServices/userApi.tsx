@@ -21,15 +21,7 @@ interface UsersResponse {
   data: User[]; // ✅ User[] not UserResponse[]
 }
 
-// Object { username: "niyi", email: "arokoyueb11@gmail.com", is_verified: true, … }
-// created_at: "2026-06-19T07:00:44.112902Z"
 
-// email: "arokoyueb11@gmail.com"
-
-// is_verified: true
-// ​last_seen: null
-// updated_at: "2026-06-19T07:00:44.112902Z"
-// username: "niyi"
 export const useGetMe = () => {
     const getMe = async (): Promise<UserResponse> => {
         const response = await fetch("http://localhost:8000/api/users/me", {
@@ -55,7 +47,7 @@ export const useGetMe = () => {
     const {data, isPending} = useQuery({
         queryKey: ["me"],
         queryFn: getMe,
-        retry: false,        // ← don't retry 401s endlessly
+        retry: 3,        
   staleTime: 0, 
     });
     return {user: data, isPending, getMe};

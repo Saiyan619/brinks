@@ -1,4 +1,4 @@
-import React, { useState, type ChangeEvent } from 'react';
+import React, { useRef, useState, type ChangeEvent } from 'react';
 import { Eye, EyeOff, Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { useLogin } from '@/apiServices/authApi';
 import { Spinner } from '@/components/ui/spinner';
 import { useNavigate } from 'react-router-dom';
+import { useGetMe } from '@/apiServices/userApi';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,15 +15,21 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const hasLoggedIn = useRef(false);
 
-  function handleLogin(e: ChangeEvent<HTMLFormElement>){
+  async function handleLogin(e: ChangeEvent<HTMLFormElement>){
     e.preventDefault();
     const data = {
       email: email,
       password: password
     }
     console.log(data);
-    loginUser(data);
+    // Prevent multiple login attempts, incase the user clicks the login button multiple times before the first request completes
+    if (hasLoggedIn.current) return;
+    hasLoggedIn.current = true;
+    // Didn't realize that the loginUser function is to be made asynchronous here again after writing an async hook earlier, 
+    // so we need to await it before navigating to the home page. Otherwise, the user might be redirected before the login request completes, which could lead to unexpected behavior.
+    await loginUser(data);
     navigate("/");
     
   }
