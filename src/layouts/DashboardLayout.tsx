@@ -14,6 +14,7 @@ export default function DashboardLayout() {
         <Route path="/home" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/chat/:room_id" element={<ChatLayout />} />
+        <Route path="/group/:group_id" element={<ChatLayout />} />
       </Routes>
     </SidebarProvider>
   )
