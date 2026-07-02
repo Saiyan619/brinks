@@ -22,6 +22,27 @@ export interface ChatroomResponse {
         updated_at: string;
     };
 }
+
+export interface groupChatroomRequest {
+    room_name: string | null;
+    description: string | null;
+    is_direct: boolean;
+    created_by: string;
+}
+export interface GroupChatroomResponse {
+    status: string;
+    data: {
+        room_id: string;
+        room_name: string | null;
+        description: string | null;
+        is_direct: boolean;
+        direct_key: string;
+        created_by: string;
+        created_at: string;
+        updated_at: string;
+    };
+}
+
 // {
 //     "room_name": null,
 //     "description": null,
@@ -64,3 +85,39 @@ export const useCreateChatroom = () => {
     })
     return {createChatroom, isPending};
     };
+
+
+export const useCreateGroupChatroom = () => {
+    const createGroupRoom = async(groupChatroomData: groupChatroomRequest) => {
+       const reponse = await fetch("http://localhost:8000/api/chatroom/create-groupchat", {
+              credentials: "include",
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(groupChatroomData)
+            })
+
+
+
+         if (!reponse.ok) {
+                throw new Error("Failed to create group chatroom");
+            }
+            console.log("Group chatroom created successfully", await reponse.json());
+            return await reponse.json();
+        }
+
+    const {mutateAsync: createGroupChatroom, isPending} = useMutation({
+        mutationFn: createGroupRoom,
+        onSuccess: () => {
+            console.log("Group chatroom created successfully");
+            toast.success("Group chatroom created successfully");
+        },
+        onError: () => {
+            console.error("Failed to create group chatroom");
+            toast.error("Failed to create group chatroom");
+        }
+    })
+    return {createGroupChatroom, isPending};
+    };
+
