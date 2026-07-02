@@ -27,7 +27,7 @@ export interface groupChatroomRequest {
     room_name: string | null;
     description: string | null;
     is_direct: boolean;
-    created_by: string;
+    created_by: string | undefined;
 }
 export interface GroupChatroomResponse {
     status: string;
@@ -104,7 +104,7 @@ export const useCreateGroupChatroom = () => {
                 throw new Error("Failed to create group chatroom");
             }
             console.log("Group chatroom created successfully", await reponse.json());
-            return await reponse.json();
+            return reponse;
         }
 
     const {mutateAsync: createGroupChatroom, isPending} = useMutation({

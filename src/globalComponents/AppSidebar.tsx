@@ -28,6 +28,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useCreateGroupChatroom } from '@/apiServices/chatApi';
+import { useGetMe } from '@/apiServices/userApi';
 
 export default function AppSidebar() {
   const navigate = useNavigate();
@@ -36,29 +38,35 @@ export default function AppSidebar() {
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [groups, setGroups] = useState<GroupChat[]>(() => getGroupChats());
-
+  const {createGroupChatroom, isPending} = useCreateGroupChatroom();
+  const {user} = useGetMe();
+  // group name, decs, isdirect, createdby
   useEffect(() => {
     return subscribeToGroupChats(() => setGroups(getGroupChats()));
   }, []);
 
-  const handleCreateGroup = (event: FormEvent<HTMLFormElement>) => {
+
+
+  const handleCreateGroup = async(event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const name = groupName.trim();
+    const room_name = groupName.trim();
     const description = groupDescription.trim();
 
-    if (!name) return;
-
-    const group = saveGroupChat({
-      name,
-      description: description || "A new group conversation.",
-    });
+    if (!room_name) return;
+    let user_id = user?.data.id;
+  
+    await createGroupChatroom({room_name, description, is_direct: false, created_by: user_id});
+    // const group = saveGroupChat({
+    //   name,
+    //   description: description || "A new group conversation.",
+    // });
 
     setGroupName("");
     setGroupDescription("");
-    setIsNewGroupOpen(false);
-    setGroups(getGroupChats());
-    navigate(`/group/${group.id}`, { state: { group } });
+    // setIsNewGroupOpen(false);
+    // setGroups(getGroupChats());
+    // navigate(`/group/${group.id}`, { state: { group } });
   };
 
   return (
@@ -120,7 +128,7 @@ export default function AppSidebar() {
                 </Button>
               </DialogClose>
               <Button type="submit" form="new-group-form" size="sm" className="h-7 px-5 text-xs font-semibold">
-                Create
+                {isPending ? "Creating..." : "Create Group"}
               </Button>
             </DialogFooter>
           </DialogContent>
