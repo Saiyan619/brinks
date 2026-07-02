@@ -3,7 +3,7 @@ import { MessageSquarePlus, Search, MoreVertical, MessageCircle, Bell, Settings,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { data, Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Dialog,
   DialogClose,
@@ -28,7 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useCreateGroupChatroom } from '@/apiServices/chatApi';
+import { useCreateGroupChatroom, useGetGroupChatrooms } from '@/apiServices/chatApi';
 import { useGetMe } from '@/apiServices/userApi';
 
 export default function AppSidebar() {
@@ -40,10 +40,12 @@ export default function AppSidebar() {
   const [groups, setGroups] = useState<GroupChat[]>(() => getGroupChats());
   const {createGroupChatroom, isPending} = useCreateGroupChatroom();
   const {user} = useGetMe();
+  const {groupChats, isPending: isGetGroupChatsPending} = useGetGroupChatrooms();
   // group name, decs, isdirect, createdby
   useEffect(() => {
+    groupChats
     return subscribeToGroupChats(() => setGroups(getGroupChats()));
-  }, []);
+  }, [groupChats]);
 
 
 
@@ -172,20 +174,20 @@ export default function AppSidebar() {
           <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Groups</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {groups.map((group) => (
-                <SidebarMenuItem key={group.id}>
+              {groupChats?.data.map((group) => (
+                <SidebarMenuItem key={group?.room_id}>
                   <SidebarMenuButton
                     asChild
-                    isActive={group_id === group.id}
+                    isActive={group_id === group?.room_id}
                     className="h-12 items-center gap-3 px-2 py-2"
                   >
-                    <Link to={`/group/${group.id}`} state={{ group }}>
+                    <Link to={`/group/${group?.room_id}`} state={{ group }}>
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-700">
                         <UsersRound className="h-4 w-4" />
                       </div>
                       <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-sm font-medium">{group.name}</span>
-                        <span className="truncate text-xs text-gray-500">{group.memberCount} members</span>
+                        <span className="truncate text-sm font-medium">{group?.room_name}</span>
+                        {/* <span className="truncate text-xs text-gray-500">{group?.memberCount} members</span> */}
                       </span>
                     </Link>
                   </SidebarMenuButton>

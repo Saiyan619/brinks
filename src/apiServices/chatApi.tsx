@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface ChatroomRequest{
@@ -10,8 +10,6 @@ interface ChatroomRequest{
 }
 
 export interface ChatroomResponse {
-    status: string;
-    data: {
         room_id: string;
         room_name: string | null;
         description: string | null;
@@ -20,7 +18,6 @@ export interface ChatroomResponse {
         created_by: string;
         created_at: string;
         updated_at: string;
-    };
 }
 
 export interface groupChatroomRequest {
@@ -30,8 +27,6 @@ export interface groupChatroomRequest {
     created_by: string | undefined;
 }
 export interface GroupChatroomResponse {
-    status: string;
-    data: {
         room_id: string;
         room_name: string | null;
         description: string | null;
@@ -40,16 +35,13 @@ export interface GroupChatroomResponse {
         created_by: string;
         created_at: string;
         updated_at: string;
-    };
 }
 
-// {
-//     "room_name": null,
-//     "description": null,
-//     "is_direct": true,
-//     "created_by": "935a42bb-90b4-47c7-be2a-94c3b0002c13",
-//     "recipient": "dc8c6bf1-347b-4b51-9d4f-3422c7db8d9b"
-// }
+interface GroupChatroomsResponse {
+    data: GroupChatroomResponse[];
+}
+
+
 export const useCreateChatroom = () => {
      const createRoom = async(chatroomData: ChatroomRequest) => {
         const reponse = await fetch("http://localhost:8000/api/chatroom/chat", {
@@ -121,3 +113,23 @@ export const useCreateGroupChatroom = () => {
     return {createGroupChatroom, isPending};
     };
 
+export const useGetGroupChatrooms = () => {
+    const getGroupChatrooms = async(): Promise<GroupChatroomsResponse> => {
+        const response = await fetch("http://localhost:8000/api/chatroom/all-groupchats", {
+            credentials: "include",
+            method: "GET",
+        });
+
+        let data = await response.json();
+        if (!response.ok) {
+            throw new Error("Failed to fetch group chatrooms");
+        }
+        console.log("Fetched group chatrooms successfully", data);
+        return data;
+    }
+    const {data, isPending} = useQuery({
+        queryKey: ['groupChatrooms'],
+        queryFn: getGroupChatrooms
+    })
+    return { groupChats: data, isPending };
+}

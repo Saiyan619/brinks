@@ -18,7 +18,7 @@ interface UserResponse {
 interface UsersResponse {
   status: string;
   result: number;
-  data: User[]; // ✅ User[] not UserResponse[]
+  data: User[];
 }
 
 
