@@ -1,21 +1,20 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { MessageSquarePlus, Search, MoreVertical, MessageCircle, Bell, Settings, UsersRound } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
+import { LogOut, MessageSquarePlus, Search, MoreVertical, MessageCircle, Bell, Settings, UsersRound } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { data, Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { getGroupChats, saveGroupChat, subscribeToGroupChats, type GroupChat } from "@/lib/group-chats";
-
 import {
   Sidebar,
   SidebarContent,
@@ -28,26 +27,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useCreateGroupChatroom, useGetGroupChatrooms } from '@/apiServices/chatApi';
+import { useCreateGroupChatroom } from '@/apiServices/chatApi';
+import { useLogout } from '@/apiServices/authApi';
 import { useGetMe } from '@/apiServices/userApi';
 
 export default function AppSidebar() {
   const navigate = useNavigate();
-  const { group_id } = useParams();
   const [isNewGroupOpen, setIsNewGroupOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
-  const [groups, setGroups] = useState<GroupChat[]>(() => getGroupChats());
   const {createGroupChatroom, isPending} = useCreateGroupChatroom();
+  const { logoutUser, isPending: isLoggingOut } = useLogout();
   const {user} = useGetMe();
-  const {groupChats, isPending: isGetGroupChatsPending} = useGetGroupChatrooms();
   // group name, decs, isdirect, createdby
-  useEffect(() => {
-    groupChats
-    return subscribeToGroupChats(() => setGroups(getGroupChats()));
-  }, [groupChats]);
-
-
 
   const handleCreateGroup = async(event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -69,6 +63,17 @@ export default function AppSidebar() {
     // setIsNewGroupOpen(false);
     // setGroups(getGroupChats());
     // navigate(`/group/${group.id}`, { state: { group } });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      setIsLogoutConfirmOpen(false);
+      setIsProfileMenuOpen(false);
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
@@ -169,34 +174,6 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Groups */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Groups</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {groupChats?.data.map((group) => (
-                <SidebarMenuItem key={group?.room_id}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={group_id === group?.room_id}
-                    className="h-12 items-center gap-3 px-2 py-2"
-                  >
-                    <Link to={`/group/${group?.room_id}`} state={{ group }}>
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-700">
-                        <UsersRound className="h-4 w-4" />
-                      </div>
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-sm font-medium">{group?.room_name}</span>
-                        {/* <span className="truncate text-xs text-gray-500">{group?.memberCount} members</span> */}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Chats</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -218,7 +195,15 @@ export default function AppSidebar() {
                 <SidebarMenuButton asChild className="flex items-center gap-3">
                   <Link to="/search">
                     <Search className="w-4 h-4" />
-                    <span>Search</span>
+                    <span>Search Users</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="flex items-center gap-3">
+                  <Link to="/search-groups">
+                    <UsersRound className="w-4 h-4" />
+                    <span>Search Groups</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -257,7 +242,7 @@ export default function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Profile</SidebarGroupLabel>
         </SidebarGroup>
-        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 cursor-pointer">
+        <div className="flex items-center justify-between rounded-lg p-3 hover:bg-gray-100">
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
               <AvatarImage src="https://i.pravatar.cc/150?u=brinks" alt="Brinks" />
@@ -268,7 +253,70 @@ export default function AppSidebar() {
               <p className="text-xs text-gray-500">Active Now</p>
             </div>
           </div>
-          <MoreVertical className="w-4 h-4 text-gray-400" />
+          <Dialog open={isProfileMenuOpen} onOpenChange={setIsProfileMenuOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full text-gray-500 hover:bg-white hover:text-gray-900"
+                aria-label="Open profile options"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[min(20rem,calc(100vw-2rem))] gap-0 overflow-hidden rounded-2xl bg-white p-0 text-gray-950 shadow-xl ring-1 ring-gray-200 sm:max-w-sm">
+              <DialogHeader className="px-5 pb-4 pt-5">
+                <DialogTitle className="text-sm font-semibold">Account options</DialogTitle>
+                <DialogDescription className="text-xs text-gray-500">
+                  Choose an account action.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="px-3 pb-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full justify-start gap-3 rounded-xl px-3 py-3 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    setIsLogoutConfirmOpen(true);
+                  }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isLogoutConfirmOpen} onOpenChange={setIsLogoutConfirmOpen}>
+            <DialogContent className="w-[min(22rem,calc(100vw-2rem))] gap-0 overflow-hidden rounded-2xl bg-white p-0 text-gray-950 shadow-xl ring-1 ring-gray-200 sm:max-w-md">
+              <DialogHeader className="px-5 pb-4 pt-5">
+                <DialogTitle className="text-base font-semibold">Log out?</DialogTitle>
+                <DialogDescription className="text-sm text-gray-500">
+                  You can sign back in anytime. This only changes the interface for now.
+                </DialogDescription>
+              </DialogHeader>
+
+              <DialogFooter className="border-t border-gray-200 bg-gray-50 px-5 py-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="ghost" className="h-9 px-4 text-sm font-medium text-gray-700 hover:bg-white">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="h-9 px-4 text-sm font-medium"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                >
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </SidebarFooter>
     </Sidebar>

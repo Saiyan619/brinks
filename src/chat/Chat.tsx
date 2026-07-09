@@ -17,15 +17,24 @@ const mergeMessages = (fetchedMessages: Message[] = [], socketMessages: Message[
   });
 
   return Array.from(messagesById.values()).sort((a, b) => {
-    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    const aTime = new Date(a.created_at).getTime();
+    const bTime = new Date(b.created_at).getTime();
+
+    return (Number.isFinite(aTime) ? aTime : 0) - (Number.isFinite(bTime) ? bTime : 0);
   });
 };
 
-const formatMessageTime = (timestamp: string) => {
+const formatMessageTime = (timestamp?: string | null) => {
+  const date = timestamp ? new Date(timestamp) : null;
+
+  if (!date || Number.isNaN(date.getTime())) {
+    return '';
+  }
+
   return new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
     minute: '2-digit',
-  }).format(new Date(timestamp));
+  }).format(date);
 };
 
 const getMessageText = (message: Message) => {

@@ -4,7 +4,7 @@ import { useGetMe } from './apiServices/userApi';
 import { Navigate, useLocation } from 'react-router-dom';
 
 const ProtectedRoutes = ({children}: {children: React.ReactNode}) => {
-    const {getMe, user, isPending} = useGetMe();
+  const {user, isPending} = useGetMe();
     const location = useLocation();
     useEffect(() => {
         user

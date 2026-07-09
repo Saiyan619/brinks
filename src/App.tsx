@@ -5,7 +5,6 @@ import Login from './auth/login/Login'
 import VerifyEmail from './auth/verifyEmail/VerifyEmail'
 import ProtectedRoutes from './ProtectedRoutes'
 import DashboardLayout from './layouts/DashboardLayout'
-import Search from './search/Search'
 
 function App() {
   return (

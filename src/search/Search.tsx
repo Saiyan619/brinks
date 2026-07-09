@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -11,7 +11,7 @@ import { useCreateChatroom } from '@/apiServices/chatApi'
 const Search = () => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('');
-  const {users, isPending} = useGetUsers();
+  const {users} = useGetUsers();
   const {user: currentUser} = useGetMe();
   const {createChatroom, isPending: isCreatingChatroom} = useCreateChatroom();
   const handleCreateRoom = async (recipient_id:string) => {

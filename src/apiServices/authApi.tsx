@@ -108,3 +108,29 @@ export const useLogin = () => {
 
     return { loginUser, isPending };
 };
+
+export const useLogout = () => {
+    const logout = async () => {
+        const response = await fetch("http://localhost:8000/api/auth/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+        if (!response.ok) {
+            throw new Error("Failed to logout");
+        }
+        console.log("Logout successful");
+        return response.json();
+    }
+
+    const { mutateAsync: logoutUser, isPending } = useMutation({
+        mutationFn: logout,
+        onSuccess: () => {
+            toast.success("Logout successful");
+        },
+        onError: () => {
+            toast.error("Failed to logout");
+        }
+    });
+
+    return { logoutUser, isPending };
+};
