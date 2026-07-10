@@ -51,39 +51,9 @@ const getMessageText = (message: Message) => {
   return message.message;
 };
 
-type LocalGroupMessage = {
-  id: string;
-  sender: string;
-  senderId: string;
-  content: string;
-  createdAt: string;
-};
-
-const getInitialGroupMessages = (group?: GroupChat): LocalGroupMessage[] => {
-  if (!group) return [];
-
-  return [
-    {
-      id: `${group.id}-welcome`,
-      sender: 'Brinks',
-      senderId: 'system',
-      content: `Welcome to ${group.name}. Start the conversation with your team here.`,
-      createdAt: group.createdAt,
-    },
-    {
-      id: `${group.id}-note`,
-      sender: 'Alex Rivera',
-      senderId: 'alex-rivera',
-      content: group.description,
-      createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-    },
-  ];
-};
-
 export default function ChatLayout() {
   const { user } = useGetMe();
   const [messageInput, setMessageInput] = useState('');
-  const [groupMessages, setGroupMessages] = useState<LocalGroupMessage[]>([]);
   const { room_id, group_id } = useParams();
   const location = useLocation();
   const selectedUser = location.state?.user;
@@ -92,8 +62,8 @@ export default function ChatLayout() {
     ? selectedGroupFromState ?? getGroupChats().find((group) => group.id === group_id)
     : undefined;
   const isGroupChat = Boolean(group_id);
+  const activeRoomId = isGroupChat ? selectedGroup?.id ?? group_id ?? '' : room_id || '';
   const currentUserId = user?.data.id;
-  const localSenderId = currentUserId ?? 'current-user';
   // Reference to the end of the messages list
   const messagesEndRef = useRef<null | HTMLDivElement>(null); 
 
@@ -106,17 +76,13 @@ export default function ChatLayout() {
 
   
 
-  const {
-    sendMessage,
-    isConnected,
-    messages: socketMessages,
-  } = useChat(!isGroupChat ? room_id || '' : '');
+  const { sendMessage, isConnected, messages: socketMessages } = useChat(activeRoomId);
   const {
     messages: fetchedMessages,
     isLoading,
     error,
     refetch,
-  } = useGetMessages(!isGroupChat ? room_id || '' : '');
+  } = useGetMessages(activeRoomId);
 
   const chatMessages = useMemo(() => {
     return mergeMessages(fetchedMessages?.data, socketMessages);
@@ -127,21 +93,6 @@ export default function ChatLayout() {
 
     if (!content) return;
 
-    if (isGroupChat) {
-      setGroupMessages((messages) => [
-        ...messages,
-        {
-          id: `group-message-${Date.now()}`,
-          sender: user?.data.username ?? 'You',
-          senderId: localSenderId,
-          content,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-      setMessageInput('');
-      return;
-    }
-
     sendMessage(content);
     setMessageInput('');
   };
@@ -149,18 +100,16 @@ export default function ChatLayout() {
   // Scroll to bottom whenever messages change
   useEffect(() => {
     scrollToBottom();
-  }, [socketMessages, fetchedMessages, groupMessages]);
-
-  useEffect(() => {
-    setGroupMessages(getInitialGroupMessages(selectedGroup));
-  }, [selectedGroup?.id]);
+  }, [socketMessages, fetchedMessages]);
 
   const currentChat = isGroupChat
     ? {
-        name: selectedGroup?.name ?? 'Group not found',
-        status: selectedGroup
-          ? `${selectedGroup.memberCount} members - ${selectedGroup.description}`
-          : 'Choose another group from the sidebar',
+        name: selectedGroup?.name ?? 'Group chat',
+        status: isConnected
+          ? selectedGroup
+            ? `${selectedGroup.memberCount} members - ${selectedGroup.description}`
+            : 'Connected'
+          : 'Connecting...',
         avatar: '',
       }
     : selectedUser ? {
@@ -215,47 +164,24 @@ export default function ChatLayout() {
             <p className="text-center text-sm text-red-500">Failed to load messages.</p>
           )}
 
-          {isGroupChat && !selectedGroup && (
-            <p className="text-center text-sm text-gray-500">This group could not be found.</p>
+          {isGroupChat && isLoading && (
+            <p className="text-center text-sm text-gray-500">Loading group messages...</p>
+          )}
+
+          {isGroupChat && error && (
+            <p className="text-center text-sm text-red-500">Failed to load group messages.</p>
           )}
 
           {!isGroupChat && !isLoading && !error && chatMessages.length === 0 && (
             <p className="text-center text-sm text-gray-500">No messages yet.</p>
           )}
 
+          {isGroupChat && !isLoading && !error && chatMessages.length === 0 && (
+            <p className="text-center text-sm text-gray-500">No group messages yet.</p>
+          )}
+
           <div className="space-y-4">
-            {isGroupChat && selectedGroup && groupMessages.map((msg) => {
-              const isSelf = msg.senderId === localSenderId;
-
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${isSelf ? 'justify-end' : 'justify-start'}`}
-                >
-                  {!isSelf && (
-                    <Avatar className="mt-1 h-8 w-8">
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${msg.sender}`} alt={msg.sender} />
-                      <AvatarFallback>{msg.sender.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
-                    className={`max-w-md rounded-lg px-4 py-3 ${
-                      isSelf
-                        ? 'rounded-br-none bg-blue-600 text-white'
-                        : 'rounded-bl-none bg-gray-100 text-gray-900'
-                    }`}
-                  >
-                    {!isSelf && <p className="mb-1 text-xs font-semibold text-gray-600">{msg.sender}</p>}
-                    <p className="text-sm">{msg.content}</p>
-                    <p className={`mt-2 text-xs ${isSelf ? 'text-blue-100' : 'text-gray-500'}`}>
-                      {formatMessageTime(msg.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-
-            {!isGroupChat && chatMessages.map((msg) => {
+            {chatMessages.map((msg) => {
               const isSelf = msg.sender_id === currentUserId;
 
               return (
@@ -302,7 +228,7 @@ export default function ChatLayout() {
             size="icon"
             className="h-8 w-8 rounded-full bg-blue-600 text-white hover:bg-blue-700"
             onClick={handleSendMessage}
-            disabled={(!isGroupChat && !isConnected) || !messageInput.trim() || (isGroupChat && !selectedGroup)}
+            disabled={(!isGroupChat && !isConnected) || !messageInput.trim() || (isGroupChat && !activeRoomId)}
           >
             <Send className="h-4 w-4" />
           </Button>

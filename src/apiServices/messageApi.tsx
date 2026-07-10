@@ -25,13 +25,19 @@ export const useChat = (roomId: string) => {
     if (!roomId) return;
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
+    console.log('[useChat] connecting websocket', { roomId });
     socketRef.current = new WebSocket(
       `ws://localhost:8000/api/ws/wschat/${roomId}`,
     );
 
-    socketRef.current.onopen = () => setIsConnected(true);
+    socketRef.current.onopen = () => {
+      console.log('[useChat] websocket connected', { roomId });
+      setIsConnected(true);
+    };
     socketRef.current.onmessage = (event) => {
       const message = JSON.parse(event.data) as Message;
+
+      console.log('[useChat] websocket message received', { roomId, message });
 
       setMessages((prev) => {
         if (prev.some((item) => item.messages_id === message.messages_id)) {
@@ -41,9 +47,16 @@ export const useChat = (roomId: string) => {
         return [...prev, message];
       });
     };
-    socketRef.current.onclose = () => setIsConnected(false);
+    socketRef.current.onerror = (event) => {
+      console.error('[useChat] websocket error', { roomId, event });
+    };
+    socketRef.current.onclose = () => {
+      console.log('[useChat] websocket closed', { roomId });
+      setIsConnected(false);
+    };
 
     return () => {
+      console.log('[useChat] cleaning up websocket', { roomId });
       socketRef.current?.close();
       socketRef.current = null;
       setMessages([]);
@@ -53,13 +66,21 @@ export const useChat = (roomId: string) => {
 
   const sendMessage = (content: string) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
+      console.log('[useChat] sending websocket message', { roomId, content });
       socketRef.current.send(
         JSON.stringify({
           content,
           room_id: roomId,
         }),
       );
+      return;
     }
+
+    console.warn('[useChat] cannot send message because websocket is not open', {
+      roomId,
+      readyState: socketRef.current?.readyState,
+      content,
+    });
   };
 
   return { sendMessage, messages, isConnected };
@@ -67,6 +88,7 @@ export const useChat = (roomId: string) => {
 
 export const useGetMessages = (roomId: string) => {
   const getMessages = async (): Promise<MessagesResponse> => {
+    console.log('[useGetMessages] fetching messages', { roomId });
     const response = await fetch(
       `http://localhost:8000/api/message/messages/${roomId}`,
       {
@@ -76,10 +98,17 @@ export const useGetMessages = (roomId: string) => {
     );
 
     if (!response.ok) {
+      console.error('[useGetMessages] fetch failed', {
+        roomId,
+        status: response.status,
+        statusText: response.statusText,
+      });
       throw new Error("Failed to fetch messages");
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log('[useGetMessages] fetch succeeded', { roomId, data });
+    return data;
   };
 
   const { data: messages, isLoading, error, refetch } = useQuery({

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 interface roomMemberRequest{
     room_id: string | null;
-    member_id: string | null;
+    user_id: string | null;
 }
 
 export const useAddMemberToRoom = () => {
@@ -14,12 +14,12 @@ export const useAddMemberToRoom = () => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ member_id: roomMemberData.member_id })
+            body: JSON.stringify({ room_id: roomMemberData.room_id, user_id: roomMemberData.user_id })
         });
         if (!response.ok) {
             throw new Error("Failed to add member to room");
         }
-        console.log(`Member ${roomMemberData.member_id} added to room ${roomMemberData.room_id} successfully`);
+        console.log(`Member ${roomMemberData.user_id} added to room ${roomMemberData.room_id} successfully`);
         return response.json();
     }
     const { mutateAsync: addMemberToRoom, isPending } = useMutation({

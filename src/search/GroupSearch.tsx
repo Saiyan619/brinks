@@ -18,6 +18,7 @@ type GroupSearchResult = {
   created_by: string
   is_direct: boolean
   direct_key: string
+  is_member: boolean
 }
 
 const GroupSearch = () => {
@@ -44,12 +45,12 @@ const GroupSearch = () => {
     })
   }, [groups, searchQuery])
 
-  const handleOpenGroup = async (group: GroupSearchResult) => {
+  const handleJoinAndNavToGroup = async (group: GroupSearchResult) => {
     try {
       if (currentUser?.data.id) {
         await addMemberToRoom({
           room_id: group.room_id,
-          member_id: currentUser.data.id,
+          user_id: currentUser.data.id,
         })
       }
 
@@ -69,6 +70,19 @@ const GroupSearch = () => {
     }
   }
 
+  const handleOpenGroup = (group: GroupSearchResult) => {
+    navigate(`/group/${group.room_id}`, {
+        state: {
+          group: {
+            id: group.room_id,
+            name: group.room_name ?? 'Untitled group',
+            description: group.description ?? '',
+            memberCount: 0,
+            createdAt: group.created_at,
+          },
+        },
+      })
+  }    
   return (
     <SidebarInset>
       <div className="w-full p-8 space-y-8">
@@ -125,14 +139,27 @@ const GroupSearch = () => {
                     <div className="hidden text-right text-xs text-gray-500 sm:block">
                       <p>Created {new Date(group.created_at).toLocaleDateString()}</p>
                     </div>
-                    <Button
+                    {
+                      group.is_member ? (
+                        <Button
                       variant="outline"
                       className="bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
                       onClick={() => handleOpenGroup(group)}
+                      >
+                      Open Group
+                    </Button>
+                      )
+                      :
+                      (<Button
+                      variant="outline"
+                      className="bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
+                      onClick={() => handleJoinAndNavToGroup(group)}
                       disabled={isJoiningGroup}
                     >
                       {isJoiningGroup ? 'Joining...' : 'Join Group'}
-                    </Button>
+                    </Button>)
+                    }
+                    
                   </div>
                 </div>
               ))}
