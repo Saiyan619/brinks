@@ -41,6 +41,22 @@ interface GroupChatroomsResponse {
     data: GroupChatroomResponse[];
 }
 
+export interface DirectChatroomResponse {
+    room_id: string;
+    is_direct: boolean;
+    direct_key: string;
+    created_at: string;
+    created_by: string;
+    description: string | null;
+    other_username: string;
+    room_name: string | null;
+    updated_at: string;
+}
+
+export interface DirectChatroomsResponse {
+    data: DirectChatroomResponse[];
+}
+
 
 export const useCreateChatroom = () => {
      const createRoom = async(chatroomData: ChatroomRequest) => {
@@ -133,3 +149,23 @@ export const useGetGroupChatrooms = () => {
     })
     return { groupChats: data, isPending };
 }
+
+export const useGetUserChatrooms = () => {
+    const getuserChatrooms = async(): Promise<DirectChatroomsResponse> => {
+        const response = await fetch("http://localhost:8000/api/chatroom/user-direct-chats", {
+            credentials: "include",
+            method: "GET",
+        });
+        let data = await response.json();
+        if (!response.ok) {
+            throw new Error("Failed to fetch user chatrooms");
+        }
+        console.log("Fetched user chatrooms successfully", data);
+        return data;
+    }
+    const {data, isPending} = useQuery({
+        queryKey: ['userChatrooms'],
+        queryFn: getuserChatrooms,
+    })
+    return { userChats: data, isPending };
+}   

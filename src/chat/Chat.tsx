@@ -9,6 +9,19 @@ import { useParams, useLocation } from 'react-router-dom';
 import { type Message, useChat, useGetMessages } from '@/apiServices/messageApi';
 import { getGroupChats, type GroupChat } from '@/lib/group-chats';
 
+
+// ////////////////////////////////////////
+// ////////////////////////////////////////
+// Working on making sure the send messages on both group and direct chat works properly with the websocket connection 
+// and the API fetch for messages. 
+// The mergeMessages function is used to combine messages from both sources and sort them by timestamp.
+//  The formatMessageTime function formats the timestamp for display, 
+// and getMessageText extracts the message content from the message object. 
+// The ChatLayout component handles rendering the chat interface, including the message list, input field, 
+// and buttons for sending messages and other actions.
+// ////////////////////////////////////////
+// ////////////////////////////////////////
+
 const mergeMessages = (fetchedMessages: Message[] = [], socketMessages: Message[] = []) => {
   const messagesById = new Map<string, Message>();
 

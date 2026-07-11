@@ -27,7 +27,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useCreateGroupChatroom } from '@/apiServices/chatApi';
+import { useCreateGroupChatroom, useGetUserChatrooms } from '@/apiServices/chatApi';
 import { useLogout } from '@/apiServices/authApi';
 import { useGetMe } from '@/apiServices/userApi';
 
@@ -41,8 +41,7 @@ export default function AppSidebar() {
   const {createGroupChatroom, isPending} = useCreateGroupChatroom();
   const { logoutUser, isPending: isLoggingOut } = useLogout();
   const {user} = useGetMe();
-  // group name, decs, isdirect, createdby
-
+  const { userChats, isPending: isFetchingUserChats } = useGetUserChatrooms();
   const handleCreateGroup = async(event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -161,15 +160,44 @@ export default function AppSidebar() {
           <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Direct Messages</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3 px-0 py-2">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src="https://i.pravatar.cc/150?u=alex" alt="Alex Rivera" />
-                    <AvatarFallback>AR</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">Alex Rivera</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {isFetchingUserChats ? (
+                <SidebarMenuItem>
+                  <div className="px-3 py-2 text-sm text-gray-500">Loading chats...</div>
+                </SidebarMenuItem>
+              ) : userChats?.data?.length ? (
+                userChats.data.map((chat) => {
+                  // const initials = chat.other_username
+                  //   .split(/\s+/)
+                  //   .filter(Boolean)
+                  //   .slice(0, 2)
+                  //   .map((part) => part[0]?.toUpperCase())
+                  //   .join('') || chat.other_username.slice(0, 2).toUpperCase();
+
+                  return (
+                    <SidebarMenuItem key={chat.room_id}>
+                      <SidebarMenuButton asChild className="flex items-center gap-3 px-0 py-2">
+                        <Link to={`/chat/${chat.room_id}`} state={{ user: { username: chat.other_username } }}>
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage
+                              src={`https://i.pravatar.cc/150?u=${encodeURIComponent(chat.other_username)}`}
+                              alt={chat.other_username}
+                            />
+                            {/* <AvatarFallback>{initials}</AvatarFallback> */}
+                          </Avatar>
+                          <div className="min-w-0 text-left">
+                            <p className="truncate text-sm font-medium text-gray-900">{chat.other_username}</p>
+                            <p className="truncate text-xs text-gray-500">Direct message</p>
+                          </div>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })
+              ) : (
+                <SidebarMenuItem>
+                  <div className="px-3 py-2 text-sm text-gray-500">No direct messages yet.</div>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
