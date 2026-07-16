@@ -27,7 +27,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useCreateGroupChatroom, useGetUserChatrooms } from '@/apiServices/chatApi';
+import { useCreateGroupChatroom, useGetUserDirectChatrooms, useGetUserGroupChatrooms } from '@/apiServices/chatApi';
 import { useLogout } from '@/apiServices/authApi';
 import { useGetMe } from '@/apiServices/userApi';
 
@@ -41,7 +41,8 @@ export default function AppSidebar() {
   const {createGroupChatroom, isPending} = useCreateGroupChatroom();
   const { logoutUser, isPending: isLoggingOut } = useLogout();
   const {user} = useGetMe();
-  const { userChats, isPending: isFetchingUserChats } = useGetUserChatrooms();
+  const { userChats, isPending: isFetchingUserChats } = useGetUserDirectChatrooms();
+  const { userChats: userGroupChats, isPending: isFetchingUserGroupChats } = useGetUserGroupChatrooms();
   const handleCreateGroup = async(event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -203,15 +204,53 @@ export default function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Chats</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Group Chats</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton className="flex items-center gap-3">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Chats</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {isFetchingUserGroupChats ? (
+                <SidebarMenuItem>
+                  <div className="px-3 py-2 text-sm text-gray-500">Loading group chats...</div>
+                </SidebarMenuItem>
+              ) : userGroupChats?.data?.length ? (
+                userGroupChats.data.map((chat) => {
+                  const initials = chat.room_name
+                    ?.split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) => part[0]?.toUpperCase())
+                    .join('') || 'GC';
+
+                  return (
+                    <SidebarMenuItem key={chat.room_id}>
+                      <SidebarMenuButton asChild className="flex items-center gap-3 px-0 py-2">
+                        <Link to={`/group/${chat.room_id}`} state={{ group: {
+                          id: chat.room_id,
+                          name: chat.room_name ?? 'Untitled group',
+                          description: chat.description ?? '',
+                          memberCount: 0,
+                          createdAt: chat.created_at,
+                        } }}>
+                          <Avatar className="w-8 h-8 rounded-md bg-blue-50 text-blue-700">
+                            <AvatarFallback className="rounded-md bg-blue-50 text-blue-700">
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 text-left">
+                            <p className="truncate text-sm font-medium text-gray-900">
+                              {chat.room_name ?? 'Untitled group'}
+                            </p>
+                            <p className="truncate text-xs text-gray-500">Group chat</p>
+                          </div>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })
+              ) : (
+                <SidebarMenuItem>
+                  <div className="px-3 py-2 text-sm text-gray-500">No group chats yet.</div>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

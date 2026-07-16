@@ -150,8 +150,8 @@ export const useGetGroupChatrooms = () => {
     return { groupChats: data, isPending };
 }
 
-export const useGetUserChatrooms = () => {
-    const getuserChatrooms = async(): Promise<DirectChatroomsResponse> => {
+export const useGetUserDirectChatrooms = () => {
+    const getuserDirectChatrooms = async(): Promise<DirectChatroomsResponse> => {
         const response = await fetch("http://localhost:8000/api/chatroom/user-direct-chats", {
             credentials: "include",
             method: "GET",
@@ -164,8 +164,28 @@ export const useGetUserChatrooms = () => {
         return data;
     }
     const {data, isPending} = useQuery({
-        queryKey: ['userChatrooms'],
-        queryFn: getuserChatrooms,
+        queryKey: ['userDirectChatrooms'],
+        queryFn: getuserDirectChatrooms,
+    })
+    return { userChats: data, isPending };
+} 
+
+export const useGetUserGroupChatrooms = () => {
+    const getuserGroupChatrooms = async(): Promise<GroupChatroomsResponse> => {
+        const response = await fetch("http://localhost:8000/api/chatroom/user-group-chats", {
+            credentials: "include",
+            method: "GET",
+        });
+        let data = await response.json();
+        if (!response.ok) {
+            throw new Error("Failed to fetch user chatrooms");
+        }
+        console.log("Fetched user chatrooms successfully", data);
+        return data;
+    }
+    const {data, isPending} = useQuery({
+        queryKey: ['userGroupChatrooms'],
+        queryFn: getuserGroupChatrooms,
     })
     return { userChats: data, isPending };
 }   
