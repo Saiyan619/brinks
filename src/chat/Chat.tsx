@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { useGetMe } from '@/apiServices/userApi';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
 import { Search, Info, MoreVertical, Send, Paperclip, MessageCircleCode, MessageCircleQuestionMarkIcon, UsersRound } from 'lucide-react';
 import { useParams, useLocation } from 'react-router-dom';
 import { type Message, useChat, useGetMessages } from '@/apiServices/messageApi';
@@ -227,22 +227,17 @@ export default function ChatLayout() {
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Paperclip className="h-4 w-4 text-gray-600" />
           </Button>
-          <Input
+          <Textarea
             placeholder="Type a message..."
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSendMessage();
-              }
-            }}
-            className="flex-1 rounded-full border-gray-200 bg-gray-50 focus-visible:ring-1"
+            className="flex-1 max-h-40 overflow-y-auto rounded-2xl border-gray-200 bg-gray-50 px-4 py-3 leading-5 focus-visible:ring-1"
           />
           <Button
             size="icon"
             className="h-8 w-8 rounded-full bg-blue-600 text-white hover:bg-blue-700"
             onClick={handleSendMessage}
-            disabled={(!isGroupChat && !isConnected) || !messageInput.trim() || (isGroupChat && !activeRoomId)}
+            disabled={!messageInput.trim() || !activeRoomId}
           >
             <Send className="h-4 w-4" />
           </Button>
