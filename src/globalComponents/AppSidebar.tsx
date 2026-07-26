@@ -160,7 +160,7 @@ export default function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Direct Messages</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1.5">
               {isFetchingUserChats ? (
                 <SidebarMenuItem>
                   <div className="px-3 py-2 text-sm text-gray-500">Loading chats...</div>
@@ -206,7 +206,7 @@ export default function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-600 uppercase">Group Chats</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1.5">
               {isFetchingUserGroupChats ? (
                 <SidebarMenuItem>
                   <div className="px-3 py-2 text-sm text-gray-500">Loading group chats...</div>
