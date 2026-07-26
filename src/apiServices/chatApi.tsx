@@ -166,6 +166,7 @@ export const useGetUserDirectChatrooms = () => {
     const {data, isPending} = useQuery({
         queryKey: ['userDirectChatrooms'],
         queryFn: getuserDirectChatrooms,
+        staleTime: 1000 * 60 * 5, 
     })
     return { userChats: data, isPending };
 } 
@@ -186,6 +187,7 @@ export const useGetUserGroupChatrooms = () => {
     const {data, isPending} = useQuery({
         queryKey: ['userGroupChatrooms'],
         queryFn: getuserGroupChatrooms,
+        staleTime: 1000 * 60 * 5, 
     })
     return { userChats: data, isPending };
 }   

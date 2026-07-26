@@ -48,7 +48,8 @@ export const useGetMe = () => {
         queryKey: ["me"],
         queryFn: getMe,
         retry: 3,        
-  staleTime: 0, 
+        staleTime: 1000 * 60 * 5, 
+        // staleTime: 0, 
     });
     return {user: data, isPending, getMe};
 }

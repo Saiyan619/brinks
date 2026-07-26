@@ -19,6 +19,7 @@ import { getGroupChats, type GroupChat } from '@/lib/group-chats';
 // and getMessageText extracts the message content from the message object. 
 // The ChatLayout component handles rendering the chat interface, including the message list, input field, 
 // and buttons for sending messages and other actions.
+// Will be working on the state management next👑👑👑👑👑
 // ////////////////////////////////////////
 // ////////////////////////////////////////
 
@@ -90,7 +91,7 @@ export default function ChatLayout() {
 
   
 
-  const { sendMessage, isConnected, messages: socketMessages } = useChat(activeRoomId);
+  const { sendMessage, connectionState, messages: socketMessages } = useChat(activeRoomId);
   const {
     messages: fetchedMessages,
     isLoading,
@@ -119,22 +120,24 @@ export default function ChatLayout() {
   const currentChat = isGroupChat
     ? {
         name: selectedGroup?.name ?? 'Group chat',
-        status: isConnected
-          ? selectedGroup
-            ? `${selectedGroup.memberCount} members - ${selectedGroup.description}`
-            : 'Connected'
-          : 'Connecting...',
+        subtitle: selectedGroup
+          ? `${selectedGroup.memberCount} members · ${selectedGroup.description}`
+          : 'Group conversation',
         avatar: '',
       }
-    : selectedUser ? {
-      name: selectedUser.username,
-      status: isConnected ? 'Connected' : 'Connecting...',
-      avatar: `https://i.pravatar.cc/150?u=${selectedUser.username}`,
-    } : {
-      name: 'Select a user',
-      status: 'No chat selected',
-      avatar: 'https://i.pravatar.cc/150?u=default',
-    };
+    : selectedUser
+      ? {
+          name: selectedUser.username,
+          subtitle: 'Live chat',
+          avatar: `https://i.pravatar.cc/150?u=${selectedUser.username}`,
+        }
+      : {
+          name: 'Select a user',
+          subtitle: 'No chat selected',
+          avatar: 'https://i.pravatar.cc/150?u=default',
+        };
+
+  const showConnectionBanner = activeRoomId && connectionState === 'disconnected';
 
   return (
     <SidebarInset>
@@ -152,8 +155,15 @@ export default function ChatLayout() {
               </Avatar>
             )}
             <div className="min-w-0">
-              <p className="text-base font-semibold">{currentChat.name}</p>
-              <p className="max-w-xl truncate text-xs text-gray-600">{currentChat.status}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-base font-semibold">{currentChat.name}</p>
+                {(selectedUser || selectedGroup) && (
+                  <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium tracking-wide text-emerald-700">
+                    Live chat
+                  </span>
+                )}
+              </div>
+              <p className="max-w-xl truncate text-xs text-gray-600">{currentChat.subtitle}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -168,6 +178,13 @@ export default function ChatLayout() {
             </Button>
           </div>
         </div>
+
+        {showConnectionBanner && (
+          <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="font-medium">Connection lost.</p>
+            <p className="text-amber-800">Messages will send when you’re back online.</p>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-6">
           {!isGroupChat && isLoading && (

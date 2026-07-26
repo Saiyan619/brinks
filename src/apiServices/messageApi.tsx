@@ -19,20 +19,27 @@ export interface MessagesResponse {
 export const useChat = (roomId: string) => {
   const socketRef = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
 
+//   i learnt something new, now i noticed every docs and paper i read on this their websocket code is usually wrapped in a useffect; 
+//   the reason why that is, is for UX reasons whereby you would need an automatic websocket connection without a button trigger when 
+//   you mount a page and an automatic disconnection when you unmount or leave the page
+// i said UX reasons because for a chat app it doesn't make any sense to need a button to connect just text someone else when you shouldn't 
+// even be thinking of that when you want to text, although there are several pages or functions where making the connection trigger manually by the users
   useEffect(() => {
     if (!roomId) return;
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
     console.log('[useChat] connecting websocket', { roomId });
+    setConnectionState('connecting');
     socketRef.current = new WebSocket(
       `ws://localhost:8000/api/ws/wschat/${roomId}`,
     );
-
+    console.log("connecting and establshing a http handshake.....")
     socketRef.current.onopen = () => {
       console.log('[useChat] websocket connected', { roomId });
-      setIsConnected(true);
+      console.log("Connected to server");
+      setConnectionState('connected');
     };
     socketRef.current.onmessage = (event) => {
       const message = JSON.parse(event.data) as Message;
@@ -49,10 +56,11 @@ export const useChat = (roomId: string) => {
     };
     socketRef.current.onerror = (event) => {
       console.error('[useChat] websocket error', { roomId, event });
+      setConnectionState('disconnected');
     };
     socketRef.current.onclose = () => {
       console.log('[useChat] websocket closed', { roomId });
-      setIsConnected(false);
+      setConnectionState('disconnected');
     };
 
     return () => {
@@ -60,7 +68,7 @@ export const useChat = (roomId: string) => {
       socketRef.current?.close();
       socketRef.current = null;
       setMessages([]);
-      setIsConnected(false);
+      setConnectionState('disconnected');
     };
   }, [roomId]);
 
@@ -83,7 +91,7 @@ export const useChat = (roomId: string) => {
     });
   };
 
-  return { sendMessage, messages, isConnected };
+  return { sendMessage, messages, connectionState };
 };
 
 export const useGetMessages = (roomId: string) => {
