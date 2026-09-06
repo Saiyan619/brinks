@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { LogOut, MessageSquarePlus, Search, MoreVertical, MessageCircle, Bell, Settings, UsersRound } from 'lucide-react';
+import { LogOut, MessageSquarePlus, Search, MoreVertical, UsersRound, Bell, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
