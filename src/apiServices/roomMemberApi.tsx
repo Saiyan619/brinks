@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/api";
 
 interface roomMemberRequest{
     room_id: string | null;
@@ -8,7 +9,7 @@ interface roomMemberRequest{
 
 export const useAddMemberToRoom = () => {
     const addMember = async (roomMemberData: roomMemberRequest) => {
-        const response = await fetch(`http://localhost:8000/api/add-member/join`, {
+        const response = await fetch(apiUrl("add-member/join"), {
             credentials: "include",
             method: "POST",
             headers: {

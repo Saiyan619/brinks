@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/api";
 
 interface RegisterDataRequest {
     username: string;
@@ -13,7 +14,7 @@ interface LoginDataRequest {
 
 export const useRegister = () => {
     const register = async (registerinput: RegisterDataRequest) =>{
-        const response = await fetch("http://localhost:8000/api/auth/register", {
+        const response = await fetch(apiUrl("auth/register"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -46,7 +47,7 @@ export const useRegister = () => {
 
 export const useVerifyEmail = () => {
     const verifyEmail = async (token: string) => {
-        const response = await fetch(`http://localhost:8000/api/auth/verify-email?token=${token}`, {
+        const response = await fetch(`${apiUrl("auth/verify-email")}?token=${token}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -80,7 +81,7 @@ export const useVerifyEmail = () => {
 
 export const useLogin = () => {
     const login = async (loginData: LoginDataRequest) => {
-        const response = await fetch("http://localhost:8000/api/auth/login", {
+        const response = await fetch(apiUrl("auth/login"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -111,7 +112,7 @@ export const useLogin = () => {
 
 export const useLogout = () => {
     const logout = async () => {
-        const response = await fetch("http://localhost:8000/api/auth/logout", {
+        const response = await fetch(apiUrl("auth/logout"), {
             method: "POST",
             credentials: "include"
         });

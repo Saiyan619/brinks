@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiUrl } from "@/lib/api";
 
 interface User {
   id: string;
@@ -24,7 +25,7 @@ interface UsersResponse {
 
 export const useGetMe = () => {
     const getMe = async (): Promise<UserResponse> => {
-        const response = await fetch("http://localhost:8000/api/users/me", {
+        const response = await fetch(apiUrl("users/me"), {
             credentials: "include",
             method: "GET",
             headers: {
@@ -57,7 +58,7 @@ export const useGetMe = () => {
 
 export const useGetUsers = () => {
     const getUsers = async (): Promise<UsersResponse> => {
-        const response = await fetch("http://localhost:8000/api/users/user-all", {
+        const response = await fetch(apiUrl("users/user-all"), {
             credentials: "include",
             method: "GET",
             headers: {

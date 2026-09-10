@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { apiUrl, websocketUrl } from "@/lib/api";
 
 export interface Message {
   messages_id: string;
@@ -33,7 +34,7 @@ export const useChat = (roomId: string) => {
     console.log('[useChat] connecting websocket', { roomId });
     setConnectionState('connecting');
     socketRef.current = new WebSocket(
-      `ws://localhost:8000/api/ws/wschat/${roomId}`,
+      websocketUrl(`ws/wschat/${roomId}`),
     );
     console.log("connecting and establshing a http handshake.....")
     socketRef.current.onopen = () => {
@@ -98,7 +99,7 @@ export const useGetMessages = (roomId: string) => {
   const getMessages = async (): Promise<MessagesResponse> => {
     console.log('[useGetMessages] fetching messages', { roomId });
     const response = await fetch(
-      `http://localhost:8000/api/message/messages/${roomId}`,
+      apiUrl(`message/messages/${roomId}`),
       {
         credentials: "include",
         method: "GET",

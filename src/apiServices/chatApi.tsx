@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/api";
 
 interface ChatroomRequest{
     room_name: string | null;
@@ -60,7 +61,7 @@ export interface DirectChatroomsResponse {
 
 export const useCreateChatroom = () => {
      const createRoom = async(chatroomData: ChatroomRequest) => {
-        const reponse = await fetch("http://localhost:8000/api/chatroom/chat", {
+        const reponse = await fetch(apiUrl("chatroom/chat"), {
             credentials: "include",
             method: "POST",
             headers: {
@@ -97,7 +98,7 @@ export const useCreateChatroom = () => {
 
 export const useCreateGroupChatroom = () => {
     const createGroupRoom = async(groupChatroomData: groupChatroomRequest) => {
-       const reponse = await fetch("http://localhost:8000/api/chatroom/create-groupchat", {
+    const reponse = await fetch(apiUrl("chatroom/create-groupchat"), {
               credentials: "include",
                 method: "POST",
                 headers: {
@@ -131,7 +132,7 @@ export const useCreateGroupChatroom = () => {
 
 export const useGetGroupChatrooms = () => {
     const getGroupChatrooms = async(): Promise<GroupChatroomsResponse> => {
-        const response = await fetch("http://localhost:8000/api/chatroom/all-groupchats", {
+        const response = await fetch(apiUrl("chatroom/all-groupchats"), {
             credentials: "include",
             method: "GET",
         });
@@ -152,7 +153,7 @@ export const useGetGroupChatrooms = () => {
 
 export const useGetUserDirectChatrooms = () => {
     const getuserDirectChatrooms = async(): Promise<DirectChatroomsResponse> => {
-        const response = await fetch("http://localhost:8000/api/chatroom/user-direct-chats", {
+        const response = await fetch(apiUrl("chatroom/user-direct-chats"), {
             credentials: "include",
             method: "GET",
         });
@@ -173,7 +174,7 @@ export const useGetUserDirectChatrooms = () => {
 
 export const useGetUserGroupChatrooms = () => {
     const getuserGroupChatrooms = async(): Promise<GroupChatroomsResponse> => {
-        const response = await fetch("http://localhost:8000/api/chatroom/user-group-chats", {
+        const response = await fetch(apiUrl("chatroom/user-group-chats"), {
             credentials: "include",
             method: "GET",
         });
