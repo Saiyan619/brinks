@@ -3,8 +3,8 @@ import AppSidebar from '@/globalComponents/AppSidebar'
 import { Route, Routes } from 'react-router-dom'
 import ChatLayout from '@/chat/Chat'
 import Home from '@/home/Home'
-import Search from '@/search/Search'
 import GroupSearch from '@/search/GroupSearch'
+import Search from '@/search/Search'
 
 export default function DashboardLayout() {
   return (

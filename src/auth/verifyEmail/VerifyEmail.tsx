@@ -10,7 +10,7 @@ const VerifyEmail = () => {
   function getTokenParams(){
     let token = searchParams.get("token");
     if (token){
-      console.log("Token found:", token);
+      // console.log("Token found:", token);
       verifyUserEmail(token);
     }
   }
