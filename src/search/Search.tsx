@@ -11,6 +11,7 @@ import { useCreateChatroom } from '@/apiServices/chatApi'
 const Search = () => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
+  const [creatingRecipientId, setCreatingRecipientId] = useState<string | null>(null)
   const { users } = useGetUsers()
   const { user: currentUser } = useGetMe()
   const { createChatroom, isPending: isCreatingChatroom } = useCreateChatroom()
@@ -27,6 +28,8 @@ const Search = () => {
   }, [searchQuery, users?.data])
 
   const handleCreateRoom = async (recipientId: string) => {
+    setCreatingRecipientId(recipientId)
+
     try {
       const response = await createChatroom({
         room_name: null,
@@ -41,6 +44,8 @@ const Search = () => {
       })
     } catch (error) {
       console.error('Failed to create chatroom:', error)
+    } finally {
+      setCreatingRecipientId(null)
     }
   }
 
@@ -89,8 +94,9 @@ const Search = () => {
                   variant="outline"
                   className="h-10 w-full shrink-0 border-blue-600 bg-white text-blue-600 hover:bg-blue-50 sm:w-auto"
                   onClick={() => handleCreateRoom(user.id)}
+                  disabled={isCreatingChatroom}
                 >
-                  {isCreatingChatroom ? 'Creating...' : 'Message'}
+                  {creatingRecipientId === user.id ? 'Creating...' : 'Message'}
                 </Button>
               </div>
             ))}
